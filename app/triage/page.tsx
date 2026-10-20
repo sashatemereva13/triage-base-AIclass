@@ -172,9 +172,12 @@ export default function TriagePage() {
           </div>
 
           {usage && (
-            <p>
+            <p className="triage-token-usage">
+              <span className="triage-token-usage-label">LLM TOKEN USAGE</span>
+              <span>
               Tokens: {usage.inputTokens} input / {usage.outputTokens} output /{" "}
               {usage.totalTokens} total
+              </span>
             </p>
           )}
 

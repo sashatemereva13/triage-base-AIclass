@@ -411,6 +411,28 @@ button:disabled {
 
 .triage-v2-result dd { margin: 0; overflow-wrap: anywhere; }
 
+.triage-token-usage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 18px;
+  margin: 0 22px 22px;
+  padding: 13px 16px;
+  border: 2px solid var(--triage-ink);
+  background: var(--triage-ink);
+  color: var(--triage-white);
+  font: 13px/1.5 "SFMono-Regular", Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.triage-token-usage-label {
+  color: var(--triage-yellow);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
 .home-option-v2 { background: var(--desk-coral); }
 
 @media (max-width: 700px) {
