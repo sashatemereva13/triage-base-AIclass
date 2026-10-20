@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import type { TriageResult } from "../../lib/schema";
+import {
+  TokenUsageSchema,
+  TriageResultSchema,
+  type TriageResult,
+  type TokenUsage,
+} from "../../lib/schema";
 
 export default function TriageV2Page() {
   const [ticketJson, setTicketJson] = useState("");
-
+  const [usage, setUsage] = useState<TokenUsage | null>(null);
   const [result, setResult] = useState<TriageResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +21,10 @@ export default function TriageV2Page() {
     setIsSubmitting(true);
     setError(null);
     setResult(null);
+    setUsage(null);
+
     let parsedTicket: unknown;
+
     try {
       parsedTicket = JSON.parse(ticketJson);
     } catch {
@@ -25,25 +33,36 @@ export default function TriageV2Page() {
       return;
     }
     try {
-      const response = await fetch("/api/triage-v2", {
+      const triageResponse = await fetch("/api/triage-v2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticket: parsedTicket }),
       });
-      const payload: unknown = await response.json();
-      if (!response.ok || typeof payload !== "object" || payload === null) {
-        const message =
-          typeof payload === "object" &&
-          payload !== null &&
-          "error" in payload &&
+
+      const payload = await triageResponse.json();
+
+      if (!triageResponse.ok) {
+        throw new Error(
           typeof payload.error === "string"
             ? payload.error
-            : "Unable to triage the ticket. Please try again.";
-        throw new Error(message);
+            : "Triage request failed.",
+        );
       }
+
       if (!("result" in payload))
         throw new Error("The triage service returned an unexpected response.");
-      setResult(payload.result as TriageResult);
+
+      const checkedResult = TriageResultSchema.safeParse(payload.result);
+
+      if (!checkedResult.success) {
+        throw new Error(
+          "The triage service returned an invalid result. Please try again.",
+        );
+      }
+      setResult(checkedResult.data);
+
+      const checkedUsage = TokenUsageSchema.safeParse(payload.usage);
+      setUsage(checkedUsage.success ? checkedUsage.data : null);
     } catch (caught) {
       setError(
         caught instanceof Error
@@ -165,6 +184,14 @@ export default function TriageV2Page() {
               </div>
             )}
           </div>
+
+          {usage && (
+            <p>
+              Tokens: {usage.inputTokens} input / {usage.outputTokens} output /{" "}
+              {usage.totalTokens} total
+            </p>
+          )}
+
           {error && (
             <p className="triage-error" role="alert">
               {error}

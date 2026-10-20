@@ -18,7 +18,14 @@ export async function POST(request: Request) {
 
   const answer = completion.choices[0]?.message.content ?? "";
 
-  return new Response(answer, {
-    headers: { "Content-Type": "text/plain; charset=utf-8" },
+  return Response.json({
+    answer,
+    usage: completion.usage
+      ? {
+          inputTokens: completion.usage.prompt_tokens,
+          outputTokens: completion.usage.completion_tokens,
+          totalTokens: completion.usage.total_tokens,
+        }
+      : null,
   });
 }

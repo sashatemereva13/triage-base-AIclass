@@ -4,7 +4,7 @@ import { PROMPT_VERSION, TRIAGE_V2_SYSTEM_PROMPT } from "../../../lib/promptV2";
 import {
   TriageJsonSchema,
   TriageResultSchema,
-  TriageTicketSchema,
+  TriageRequestSchema,
 } from "../../../lib/schema";
 
 export async function POST(request: Request) {
@@ -18,40 +18,30 @@ export async function POST(request: Request) {
     );
   }
 
-  const pastedTicket =
-    typeof body === "object" && body !== null && "ticket" in body
-      ? body.ticket
-      : undefined;
+  const requestBody = TriageRequestSchema.safeParse(body);
 
-  if (typeof pastedTicket !== "object" || pastedTicket === null) {
+  if (!requestBody.success) {
+    const details = requestBody.error.issues
+      .map((issue) => {
+        const field = issue.path.length > 0 ? issue.path.join(".") : "request";
+        return `${field}: ${issue.message}`;
+      })
+      .join("; ");
+
     return Response.json(
-      { error: "Please paste a ticket object with a subject and body." },
+      { error: `Invalid request: ${details}` },
       { status: 400 },
     );
   }
 
-  const ticketFields = {
-    subject: "subject" in pastedTicket ? pastedTicket.subject : "",
-    body: "body" in pastedTicket ? pastedTicket.body : "",
-  };
-
-  const ticket = TriageTicketSchema.safeParse(ticketFields);
-  if (!ticket.success) {
-    return Response.json(
-      {
-        error:
-          "The ticket must have a subject and a body (up to 5,000 characters).",
-      },
-      { status: 400 },
-    );
-  }
+  const ticket = requestBody.data.ticket;
 
   try {
     const completion = await llm.chat.completions.create({
       model: llmModel,
       messages: [
         { role: "system", content: TRIAGE_V2_SYSTEM_PROMPT },
-        { role: "user", content: JSON.stringify(ticket.data) },
+        { role: "user", content: JSON.stringify(ticket) },
       ],
       response_format: {
         type: "json_schema",
@@ -98,6 +88,13 @@ export async function POST(request: Request) {
     return Response.json({
       result: result.data,
       promptVersion: PROMPT_VERSION,
+      usage: completion.usage
+        ? {
+            inputTokens: completion.usage.prompt_tokens,
+            outputTokens: completion.usage.completion_tokens,
+            totalTokens: completion.usage.total_tokens,
+          }
+        : null,
     });
   } catch (error) {
     if (error instanceof OpenAI.APIError) {
