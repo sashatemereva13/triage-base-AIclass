@@ -1,11 +1,8 @@
 import OpenAI from "openai";
-import { llm, llmModel } from "../../../lib/llm";
-import { PROMPT_VERSION, TRIAGE_V2_SYSTEM_PROMPT } from "../../../lib/promptV2";
-import {
-  TriageJsonSchema,
-  TriageResultSchema,
-  TriageRequestSchema,
-} from "../../../lib/schema";
+import { classifyTicket } from "../../../lib/classifyTicket";
+import { isSupportedModel, llmModel } from "../../../lib/llm";
+import { PROMPT_VERSION } from "../../../lib/promptV2";
+import { TriageRequestSchema } from "../../../lib/schema";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -19,7 +16,6 @@ export async function POST(request: Request) {
   }
 
   const requestBody = TriageRequestSchema.safeParse(body);
-
   if (!requestBody.success) {
     const details = requestBody.error.issues
       .map((issue) => {
@@ -34,98 +30,38 @@ export async function POST(request: Request) {
     );
   }
 
-  const ticket = requestBody.data.ticket;
+  const selectedModel = requestBody.data.model ?? llmModel;
+  if (!isSupportedModel(selectedModel)) {
+    return Response.json({ error: "Choose one of the configured LLM models." }, { status: 400 });
+  }
 
   try {
-    const completion = await llm.chat.completions.create({
-      model: llmModel,
-      messages: [
-        { role: "system", content: TRIAGE_V2_SYSTEM_PROMPT },
-        { role: "user", content: JSON.stringify(ticket) },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "support_ticket_triage",
-          strict: true,
-          schema: TriageJsonSchema,
-        },
-      },
-    });
-
-    const content = completion.choices[0]?.message.content;
-    if (!content) {
-      return Response.json(
-        { error: "The triage service returned no result. Please try again." },
-        { status: 502 },
-      );
-    }
-
-    let modelResult: unknown;
-    try {
-      modelResult = JSON.parse(content);
-    } catch {
-      return Response.json(
-        {
-          error:
-            "The triage service returned an unreadable result. Please try again.",
-        },
-        { status: 502 },
-      );
-    }
-
-    const result = TriageResultSchema.safeParse(modelResult);
-    if (!result.success) {
-      return Response.json(
-        {
-          error:
-            "The triage service returned an invalid result. Please try again.",
-        },
-        { status: 502 },
-      );
-    }
-
+    const classification = await classifyTicket(requestBody.data.ticket, selectedModel);
     return Response.json({
-      result: result.data,
+      ...classification,
       promptVersion: PROMPT_VERSION,
-      usage: completion.usage
-        ? {
-            inputTokens: completion.usage.prompt_tokens,
-            outputTokens: completion.usage.completion_tokens,
-            totalTokens: completion.usage.total_tokens,
-          }
-        : null,
+      model: selectedModel,
     });
   } catch (error) {
     if (error instanceof OpenAI.APIError) {
       if (error.status === 404) {
         return Response.json(
-          {
-            error:
-              "The configured triage model was not found. Please contact support.",
-          },
+          { error: "The configured triage model was not found. Please contact support." },
           { status: 502 },
         );
       }
       if (error.status === 401 || error.status === 403) {
         return Response.json(
-          {
-            error:
-              "The triage service is not configured correctly. Please contact support.",
-          },
+          { error: "The triage service is not configured correctly. Please contact support." },
           { status: 503 },
         );
       }
       return Response.json(
-        {
-          error:
-            "The triage service is temporarily unavailable. Please try again.",
-        },
+        { error: "The triage service is temporarily unavailable. Please try again." },
         { status: 502 },
       );
     }
 
-    // Keep exception details (and configuration) out of browser responses.
     return Response.json(
       { error: "Unable to triage this ticket right now. Please try again." },
       { status: 502 },

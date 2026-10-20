@@ -41,7 +41,20 @@ The `data/` folder contains two support-ticket datasets:
 
 ## Run locally
 
-Requires Node.js 20.9 or newer.
+Requires Node.js 22.5 or newer.
+
+To enable model selection, configure `LLM_MODEL` as the default model and set
+`LLM_MODELS` to the comma-separated model IDs available from the configured
+provider, for example `LLM_MODELS=model-a,model-b`. The model menu appears in
+Triage V2 and the smoke test runner. Smoke test runs can be repeated against the
+same sampled tickets with another model; `/admin` groups those runs for a
+side-by-side comparison. All listed models must be available through the same
+`LLM_BASE_URL` and API key.
+
+For estimated cost logging, set `LLM_MODEL_PRICING_JSON` to a JSON object keyed
+by model ID, with `inputPer1MUsd` and `outputPer1MUsd` prices. Cost is shown as
+unavailable for models without a configured rate or runs with missing token
+usage.
 
 ```sh
 npm install

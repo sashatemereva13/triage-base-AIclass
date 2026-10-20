@@ -20,6 +20,7 @@ export const TriageTicketSchema = z
 export const TriageRequestSchema = z
   .object({
     ticket: TriageTicketSchema,
+    model: z.string().trim().min(1).optional(),
   })
   .strict();
 

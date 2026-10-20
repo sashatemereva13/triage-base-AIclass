@@ -16,3 +16,14 @@ export const llm = new OpenAI({
 
 export const llmModel = requiredEnv("LLM_MODEL");
 
+const configuredModels = process.env.LLM_MODELS
+  ?.split(",")
+  .map((model) => model.trim())
+  .filter(Boolean);
+
+export const llmModels = Array.from(new Set([llmModel, ...(configuredModels ?? [])]));
+
+export function isSupportedModel(model: string): boolean {
+  return llmModels.includes(model);
+}
+

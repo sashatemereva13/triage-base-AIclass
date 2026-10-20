@@ -83,6 +83,9 @@ export default function TriagePage() {
         <Link className="triage-chat-link" href="/chat">
           CHAT
         </Link>
+        <Link className="triage-chat-link" href="/smoke-test">
+          SMOKE TEST
+        </Link>
       </header>
 
       <section className="triage-heading">

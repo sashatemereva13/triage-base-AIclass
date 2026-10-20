@@ -2,5 +2,7 @@ node_modules/
 .vscode/
 .next/
 *.tsbuildinfo
+data/*.sqlite
+data/*.sqlite-*
 .env*
 !.env.example

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { ModelMenu } from "../components/ModelMenu";
 import {
   TokenUsageSchema,
   TriageResultSchema,
@@ -11,6 +12,7 @@ import {
 
 export default function TriageV2Page() {
   const [ticketJson, setTicketJson] = useState("");
+  const [model, setModel] = useState("");
   const [usage, setUsage] = useState<TokenUsage | null>(null);
   const [result, setResult] = useState<TriageResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,18 +34,25 @@ export default function TriageV2Page() {
       setIsSubmitting(false);
       return;
     }
+
+
+
     try {
       const triageResponse = await fetch("/api/triage-v2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticket: parsedTicket }),
+        body: JSON.stringify({ ticket: parsedTicket, model }),
       });
 
-      const payload = await triageResponse.json();
+      const payload: unknown = await triageResponse.json();
+
+      if (typeof payload !== "object" || payload === null) {
+        throw new Error("The triage service returned an unexpected response.");
+      }
 
       if (!triageResponse.ok) {
         throw new Error(
-          typeof payload.error === "string"
+          "error" in payload && typeof payload.error === "string"
             ? payload.error
             : "Triage request failed.",
         );
@@ -61,7 +70,9 @@ export default function TriageV2Page() {
       }
       setResult(checkedResult.data);
 
-      const checkedUsage = TokenUsageSchema.safeParse(payload.usage);
+      const checkedUsage = TokenUsageSchema.safeParse(
+        "usage" in payload ? payload.usage : null,
+      );
       setUsage(checkedUsage.success ? checkedUsage.data : null);
     } catch (caught) {
       setError(
@@ -92,6 +103,9 @@ export default function TriageV2Page() {
         <Link className="triage-chat-link" href="/triage">
           TRIAGE V1
         </Link>
+        <Link className="triage-chat-link" href="/smoke-test">
+          SMOKE TEST
+        </Link>
       </header>
 
       <section className="triage-heading">
@@ -115,6 +129,7 @@ export default function TriageV2Page() {
             <span className="triage-new-tag">INPUT</span>
           </div>
           <div className="triage-fields">
+            <ModelMenu value={model} onChange={setModel} disabled={isSubmitting} />
             <label htmlFor="v2-body">TICKET BODY</label>
             <textarea
               id="v2-body"
