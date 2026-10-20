@@ -49,6 +49,7 @@ export function ModelMenu({ value, onChange, disabled = false }: ModelMenuProps)
       >
         {models.map((model) => <option key={model} value={model}>{model}</option>)}
       </select>
+      {models.length === 1 && <p className="model-menu-hint">Only one model is configured. Add more IDs to <code>LLM_MODELS</code> to compare models.</p>}
       {error && <p className="triage-error" role="alert">{error}</p>}
     </>
   );

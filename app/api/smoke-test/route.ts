@@ -248,6 +248,10 @@ export async function POST(request: Request) {
           priorityMismatches: outcomes.priorityMismatchOnly + outcomes.bothMismatched,
           successfulPredictions: successful.length,
           failedPredictions: outcomes.failed,
+          evaluatedPredictions: evaluated,
+          categoryAccuracy,
+          priorityAccuracy,
+          exactAccuracy,
         }
       : null;
 

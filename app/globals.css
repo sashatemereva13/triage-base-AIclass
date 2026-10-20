@@ -619,6 +619,7 @@ button:disabled {
   }
 }
 
+
 @media (max-width: 760px) {
   .triage-page {
     padding: 18px 18px 16px;
@@ -694,6 +695,7 @@ button:disabled {
     transition: none;
   }
 }
+
 
 .home-page,
 .chat-page,
@@ -1681,6 +1683,116 @@ button:disabled {
 
 .triage-empty-mark { color: var(--retro-orange); }
 
+.triage-form-hint,
+.triage-info,
+.admin-cost-note,
+.model-menu-hint {
+  margin: 0 22px 18px;
+  color: var(--triage-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.model-menu-hint { margin: 0; font-size: 11px; }
+
+.triage-info {
+  padding: 12px 14px;
+  border-left: 4px solid var(--retro-turquoise);
+  background: #5caaa01a;
+}
+
+.form-error { margin: 0 22px 22px; }
+
+.triage-secondary-button {
+  min-height: 44px;
+  justify-self: start;
+  padding: 10px 14px;
+  border: 2px solid var(--retro-ink);
+  border-radius: 3px;
+  background: linear-gradient(180deg, #fff8e8, #e8d5b8);
+  box-shadow: 0 3px 0 var(--retro-ink);
+  color: var(--retro-ink);
+  cursor: pointer;
+  font: 700 10px/1.4 "SFMono-Regular", Consolas, monospace;
+}
+
+.triage-secondary-button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.smoke-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin: 0 22px 18px;
+  padding: 14px 16px;
+  border-left: 4px solid var(--retro-turquoise);
+  background: #5caaa01a;
+  font-size: 12px;
+}
+
+.smoke-summary strong { width: 100%; font: 700 10px/1.4 "SFMono-Regular", Consolas, monospace; text-transform: uppercase; }
+
+.triage-token-details {
+  margin: 0 22px 18px;
+  border-top: 1px solid #30233330;
+  color: var(--triage-muted);
+  font: 11px/1.5 "SFMono-Regular", Consolas, monospace;
+}
+
+.triage-token-details summary {
+  width: fit-content;
+  padding: 10px 0 4px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.triage-token-details .triage-token-usage {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  font-size: 11px;
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+  width: min(1180px, 100%);
+  margin: 0 auto 26px;
+  padding: 16px;
+  border: 2px solid var(--retro-ink);
+  background: var(--retro-card);
+}
+
+.admin-toolbar label {
+  display: grid;
+  min-width: 190px;
+  gap: 5px;
+  color: var(--retro-muted);
+  font: 700 10px/1.4 "SFMono-Regular", Consolas, monospace;
+}
+
+.admin-toolbar .triage-input { min-height: 42px; padding: 8px; font-size: 13px; }
+
+.admin-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: min(1180px, 100%);
+  margin: 24px auto;
+  font: 700 10px/1.4 "SFMono-Regular", Consolas, monospace;
+}
+
+.admin-pagination .triage-secondary-button { justify-self: auto; }
+
+.home-editorial { padding-top: clamp(32px, 5vw, 62px); padding-bottom: 28px; }
+.home-editorial h1 { font-size: clamp(54px, 8.2vw, 96px); }
+.home-deck { margin-top: 18px; }
+.home-secondary-grid { margin-top: 44px; }
+.home-page .home-footer { margin-top: 46px; }
+
 @media (max-width: 700px) {
   .triage-form,
   .triage-output,
@@ -1688,5 +1800,699 @@ button:disabled {
   .home-primary,
   .chat-console {
     box-shadow: 5px 5px 0 var(--retro-ink), 7px 7px 0 #d7839138;
+  }
+}
+
+/* Shared design system: warm paper, cobalt actions, ink outlines, tactile depth. */
+:root {
+  color-scheme: light;
+  --ui-paper: #f5f3ea;
+  --ui-surface: #fffdf5;
+  --ui-surface-raised: #ffffff;
+  --ui-ink: #171915;
+  --ui-muted: #5e625b;
+  --ui-line: #262821;
+  --ui-blue: #3154dc;
+  --ui-blue-dark: #2443bb;
+  --ui-yellow: #f2df3e;
+  --ui-orange: #d56d43;
+  --ui-green: #467c65;
+  --ui-red: #a8322b;
+  --ui-focus: #1f5fff;
+  --ui-radius: 4px;
+  --ui-shadow: 5px 5px 0 var(--ui-ink);
+  --ui-shadow-small: 3px 3px 0 var(--ui-ink);
+  --ui-content: 1180px;
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 24px;
+  --ui-space-6: 32px;
+  --ui-space-7: 48px;
+  --ui-space-8: 64px;
+  --ui-type-label: 0.7rem;
+  --ui-type-body: 1rem;
+  --ui-type-title: clamp(2.75rem, 7vw, 5.5rem);
+}
+
+body {
+  color: var(--ui-ink);
+  background: var(--ui-paper);
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.triage-page,
+.home-page,
+.chat-page {
+  --retro-paper: var(--ui-paper);
+  --retro-card: var(--ui-surface);
+  --retro-ink: var(--ui-ink);
+  --retro-muted: var(--ui-muted);
+  --retro-orange: var(--ui-orange);
+  --retro-yellow: var(--ui-yellow);
+  --retro-turquoise: var(--ui-blue);
+  --retro-pink: #e8b1a0;
+  min-height: 100svh;
+  background-color: var(--ui-paper);
+  background-image: radial-gradient(#17191520 0.8px, transparent 0.8px);
+  background-size: 18px 18px;
+  color: var(--ui-ink);
+}
+
+.triage-page {
+  --triage-paper: var(--ui-paper);
+  --triage-white: var(--ui-surface);
+  --triage-ink: var(--ui-ink);
+  --triage-muted: var(--ui-muted);
+  --triage-blue: var(--ui-blue);
+  --triage-yellow: var(--ui-yellow);
+  --triage-coral: var(--ui-orange);
+  --triage-border: 2px solid var(--ui-line);
+  padding: clamp(18px, 4vw, 40px) clamp(18px, 5vw, 64px) 24px;
+}
+
+.home-page,
+.chat-page {
+  --desk-paper: var(--ui-paper);
+  --desk-white: var(--ui-surface);
+  --desk-ink: var(--ui-ink);
+  --desk-muted: var(--ui-muted);
+  --desk-blue: var(--ui-blue);
+  --desk-yellow: var(--ui-yellow);
+  --desk-coral: var(--ui-orange);
+  --desk-border: 2px solid var(--ui-line);
+  padding: clamp(18px, 4vw, 40px) clamp(18px, 5vw, 64px) 24px;
+}
+
+.triage-nav,
+.triage-heading,
+.triage-workspace,
+.triage-footer,
+.home-nav,
+.home-editorial,
+.home-primary,
+.home-secondary-grid,
+.home-footer,
+.chat-nav,
+.chat-heading,
+.chat-console,
+.chat-footer {
+  width: min(var(--ui-content), 100%);
+}
+
+.triage-wordmark-mark,
+.home-wordmark-mark,
+.chat-wordmark-mark {
+  border: 2px solid var(--ui-ink);
+  border-radius: 2px;
+  background: var(--ui-blue);
+  box-shadow: var(--ui-shadow-small);
+  color: #fff;
+}
+
+.triage-heading h1,
+.chat-heading h1,
+.home-editorial h1,
+.home-heading h1 {
+  color: var(--ui-ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  letter-spacing: -0.065em;
+  text-transform: none;
+  text-shadow: none;
+}
+
+.triage-heading h1 span,
+.chat-heading h1 span,
+.home-editorial h1 em,
+.home-heading h1 span {
+  color: var(--ui-blue);
+}
+
+.triage-eyebrow,
+.home-eyebrow,
+.chat-eyebrow,
+.triage-panel-index,
+.triage-fields label,
+.triage-output-status,
+.triage-footer,
+.home-section-label,
+.home-footer,
+.chat-panel-index,
+.chat-console-status,
+.chat-footer,
+.triage-wordmark-name,
+.home-wordmark-name,
+.home-nav-note,
+.chat-wordmark-name {
+  color: var(--ui-muted);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: var(--ui-type-label);
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  line-height: 1.5;
+}
+
+.triage-eyebrow span,
+.home-editorial .home-eyebrow span,
+.chat-eyebrow span {
+  background: var(--ui-blue);
+  color: #fff;
+}
+
+.triage-chat-link,
+.home-nav-admin,
+.chat-triage-link,
+.triage-secondary-button {
+  min-height: 42px;
+  border: 2px solid var(--ui-ink);
+  border-radius: 2px;
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow-small);
+  color: var(--ui-ink);
+}
+
+.triage-chat-link:hover,
+.home-nav-admin:hover,
+.chat-triage-link:hover,
+.triage-secondary-button:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ui-ink);
+}
+
+.triage-form,
+.triage-output,
+.admin-run,
+.admin-comparison,
+.smoke-result,
+.home-primary,
+.home-secondary,
+.chat-console {
+  border: 2px solid var(--ui-ink);
+  border-radius: var(--ui-radius);
+  box-shadow: var(--ui-shadow);
+}
+
+.triage-form,
+.triage-output,
+.admin-run,
+.admin-comparison,
+.smoke-result,
+.home-secondary,
+.chat-console {
+  background: var(--ui-surface);
+}
+
+.triage-panel-heading,
+.triage-output-heading,
+.admin-run-heading,
+.chat-console-heading {
+  border-bottom: 2px solid var(--ui-ink);
+  background: var(--ui-yellow);
+}
+
+.triage-new-tag,
+.triage-output-status,
+.home-option-stamp {
+  border-radius: 2px;
+  background: var(--ui-blue);
+  color: #fff;
+}
+
+.triage-input,
+.chat-composer textarea {
+  min-height: 46px;
+  border: 2px solid #77796f;
+  border-radius: 2px;
+  background: var(--ui-surface-raised);
+  color: var(--ui-ink);
+  box-shadow: none;
+  line-height: 1.5;
+}
+
+.triage-input:hover,
+.chat-composer textarea:hover {
+  border-color: var(--ui-ink);
+}
+
+.triage-input:focus-visible,
+.triage-submit:focus-visible,
+.triage-chat-link:focus-visible,
+.triage-wordmark:focus-visible,
+.home-page a:focus-visible,
+.chat-page a:focus-visible,
+.chat-composer textarea:focus-visible,
+.chat-send:focus-visible,
+.triage-secondary-button:focus-visible,
+.home-primary-action:focus-visible {
+  outline: 3px solid var(--ui-focus);
+  outline-offset: 3px;
+}
+
+.triage-submit,
+.chat-send,
+.home-primary-action {
+  min-height: 52px;
+  border: 2px solid var(--ui-ink);
+  border-radius: 2px;
+  background: var(--ui-blue);
+  box-shadow: 0 4px 0 var(--ui-ink);
+  color: #fff;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.triage-submit:hover:not(:disabled),
+.chat-send:hover:not(:disabled),
+.home-primary-action:hover {
+  transform: translateY(-2px);
+  background: var(--ui-blue-dark);
+  box-shadow: 0 6px 0 var(--ui-ink);
+}
+
+.triage-submit:active:not(:disabled),
+.chat-send:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--ui-ink);
+}
+
+.triage-submit:disabled,
+.chat-send:disabled,
+.triage-secondary-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: 0 2px 0 var(--ui-ink);
+}
+
+.triage-error,
+.chat-error {
+  color: var(--ui-red);
+}
+
+.triage-info,
+.triage-form-hint,
+.admin-cost-note,
+.model-menu-hint {
+  color: var(--ui-muted);
+}
+
+.triage-info {
+  border-left-color: var(--ui-blue);
+  background: #3154dc12;
+}
+
+.triage-empty-state {
+  border-color: #3154dc55;
+  background: var(--ui-paper);
+}
+
+.home-primary {
+  background: var(--ui-yellow);
+}
+
+.home-primary-action {
+  min-width: 210px;
+  justify-content: space-between;
+  background: var(--ui-blue);
+}
+
+.home-link-list a {
+  color: var(--ui-ink);
+}
+
+.home-link-list a:hover > span:last-child {
+  color: var(--ui-blue);
+}
+
+.admin-toolbar {
+  border: 2px solid var(--ui-ink);
+  border-radius: var(--ui-radius);
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow-small);
+}
+
+.admin-comparison thead th {
+  background: var(--ui-yellow);
+}
+
+.smoke-summary {
+  border-left-color: var(--ui-blue);
+  background: #3154dc12;
+}
+
+.triage-token-details {
+  border-top-color: #17191540;
+}
+
+.home-editorial h1 {
+  font-size: clamp(3.4rem, 9.2vw, 8.2rem);
+  line-height: 0.92;
+}
+
+.home-deck {
+  max-width: 31rem;
+  color: var(--ui-muted);
+  font-size: clamp(1rem, 1.5vw, 1.25rem);
+}
+
+.home-secondary h2,
+.home-primary h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: -0.04em;
+}
+
+.chat-thread {
+  background: #f9f7ef;
+}
+
+.chat-message.user {
+  border: 1px solid #3154dc66;
+  background: #3154dc12;
+}
+
+.chat-message.assistant {
+  border: 1px solid #17191524;
+  background: var(--ui-surface);
+}
+
+@media (max-width: 700px) {
+  .triage-page,
+  .home-page,
+  .chat-page {
+    padding: 16px 16px 22px;
+  }
+
+  .triage-form,
+  .triage-output,
+  .admin-run,
+  .admin-comparison,
+  .smoke-result,
+  .home-primary,
+  .home-secondary,
+  .chat-console {
+    box-shadow: 4px 4px 0 var(--ui-ink);
+  }
+
+  .triage-nav,
+  .home-nav,
+  .chat-nav {
+    gap: 12px;
+  }
+
+  .home-editorial h1 {
+    font-size: clamp(3rem, 14vw, 5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Editorial hierarchy and a deliberately small, consistent action language. */
+.triage-heading,
+.chat-heading {
+  padding-top: clamp(36px, 6vw, 72px);
+  padding-bottom: clamp(28px, 4vw, 48px);
+}
+
+.triage-heading h1,
+.chat-heading h1 {
+  font-size: clamp(3.25rem, 8vw, 6.5rem);
+  line-height: 0.94;
+}
+
+.home-editorial {
+  width: min(1120px, 100%);
+  padding-top: clamp(54px, 9vw, 112px);
+  padding-bottom: clamp(36px, 6vw, 76px);
+}
+
+.home-editorial .home-eyebrow {
+  margin-bottom: clamp(22px, 3vw, 36px);
+}
+
+.home-editorial h1 {
+  max-width: 1040px;
+  font-size: clamp(3.8rem, 10vw, 9rem);
+  line-height: 0.88;
+}
+
+.home-editorial h1 em {
+  font-style: italic;
+}
+
+.home-deck {
+  max-width: 32rem;
+  margin-top: clamp(24px, 4vw, 44px);
+  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+  line-height: 1.6;
+}
+
+.home-primary {
+  min-height: 280px;
+  padding: clamp(28px, 5vw, 56px);
+}
+
+.home-primary h2,
+.home-secondary h2 {
+  font-weight: 500;
+}
+
+.home-primary h2 {
+  font-size: clamp(2rem, 4.6vw, 3.5rem);
+  line-height: 1.02;
+}
+
+.home-secondary h2 {
+  font-size: clamp(1.75rem, 3vw, 2.4rem);
+}
+
+.triage-output-heading h2,
+.chat-console-heading h2,
+.admin-run-heading h2,
+.admin-comparisons > h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.home-link-list a {
+  min-height: 72px;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.triage-panel-heading,
+.triage-output-heading,
+.admin-run-heading,
+.chat-console-heading {
+  min-height: 68px;
+  padding: 16px 20px;
+}
+
+.triage-fields {
+  gap: 12px;
+  padding: clamp(18px, 3vw, 26px);
+}
+
+.triage-fields label {
+  margin-top: 8px;
+}
+
+/* Primary action: cobalt, high contrast, tactile, and easy to locate. */
+.triage-submit,
+.chat-send,
+.home-primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 56px;
+  padding: 14px 18px;
+  border: 2px solid var(--ui-ink);
+  border-radius: 2px;
+  background: var(--ui-blue);
+  box-shadow: 4px 4px 0 var(--ui-ink);
+  color: white;
+  cursor: pointer;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  line-height: 1.3;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.triage-submit:hover:not(:disabled),
+.chat-send:hover:not(:disabled),
+.home-primary-action:hover {
+  transform: translate(-2px, -2px);
+  background: var(--ui-blue-dark);
+  box-shadow: 6px 6px 0 var(--ui-ink);
+}
+
+.triage-submit:active:not(:disabled),
+.chat-send:active:not(:disabled),
+.home-primary-action:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ui-ink);
+}
+
+.triage-submit:disabled,
+.chat-send:disabled {
+  background: #7d88bd;
+  color: #f7f7f4;
+  cursor: not-allowed;
+  opacity: 1;
+  transform: none;
+  box-shadow: 2px 2px 0 var(--ui-ink);
+}
+
+.triage-submit-mark,
+.chat-send span {
+  display: grid;
+  width: 24px;
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid currentColor;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Secondary actions stay quiet, but retain a generous hit area and clear state. */
+.triage-secondary-button,
+.triage-chat-link,
+.home-nav-admin,
+.chat-triage-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--ui-ink);
+  border-radius: 2px;
+  background: var(--ui-surface);
+  box-shadow: 2px 2px 0 var(--ui-ink);
+  color: var(--ui-ink);
+  cursor: pointer;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  line-height: 1.3;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.triage-secondary-button:hover:not(:disabled),
+.triage-chat-link:hover,
+.home-nav-admin:hover,
+.chat-triage-link:hover {
+  transform: translate(-1px, -1px);
+  background: white;
+  box-shadow: 3px 3px 0 var(--ui-ink);
+}
+
+.triage-secondary-button:active:not(:disabled),
+.triage-chat-link:active,
+.home-nav-admin:active,
+.chat-triage-link:active {
+  transform: translate(1px, 1px);
+  box-shadow: 0 0 0 var(--ui-ink);
+}
+
+.triage-secondary-button:disabled {
+  color: #76786f;
+  cursor: not-allowed;
+  opacity: 1;
+  box-shadow: 1px 1px 0 #77796f;
+}
+
+.triage-submit:focus-visible,
+.chat-send:focus-visible,
+.home-primary-action:focus-visible,
+.triage-secondary-button:focus-visible,
+.triage-chat-link:focus-visible,
+.home-nav-admin:focus-visible,
+.chat-triage-link:focus-visible {
+  outline: 3px solid var(--ui-focus);
+  outline-offset: 4px;
+}
+
+.home-secondary {
+  min-width: 0;
+  padding: clamp(22px, 3vw, 34px);
+}
+
+.home-secondary .home-section-label {
+  margin-bottom: 18px;
+}
+
+.home-secondary h2 {
+  margin-bottom: 26px;
+}
+
+.home-secondary .home-link-list {
+  border-top: 1px solid #17191555;
+}
+
+.home-secondary .home-link-list a {
+  min-height: 76px;
+  padding: 16px 2px;
+  border-bottom: 1px solid #17191540;
+}
+
+.home-secondary .home-link-list a:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 700px) {
+  .home-editorial h1 {
+    font-size: clamp(3.3rem, 14vw, 5.5rem);
+    line-height: 0.9;
+  }
+
+  .home-primary {
+    min-height: auto;
+  }
+
+  .home-primary-action {
+    width: 100%;
+  }
+
+  .home-secondary {
+    padding: 22px 18px;
   }
 }

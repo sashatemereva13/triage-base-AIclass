@@ -25,6 +25,10 @@ type SmokeResponse = {
     priorityMismatches: number;
     successfulPredictions: number;
     failedPredictions: number;
+    evaluatedPredictions: number;
+    categoryAccuracy: number | null;
+    priorityAccuracy: number | null;
+    exactAccuracy: number | null;
   } | null;
 };
 
@@ -47,6 +51,11 @@ export default function SmokeTestPage() {
   const [error, setError] = useState<string | null>(null);
   const [model, setModel] = useState("");
   const maxSampleSize = dataset === "labelled100" ? 100 : 500;
+
+  function startNewBaseline() {
+    setData(null);
+    setError(null);
+  }
 
   async function executeSmokeTest(previousRun?: SmokeResponse) {
     setLoading(true);
@@ -129,10 +138,11 @@ export default function SmokeTestPage() {
       <form className="triage-form" onSubmit={runSmokeTest} aria-busy={loading}>
         <div className="triage-panel-heading">
           <span className="triage-panel-index">A / 01</span>
-          <span>Run configuration</span>
+          <span>{data ? "Comparison sample" : "Baseline configuration"}</span>
         </div>
         <div className="triage-fields">
           <ModelMenu value={model} onChange={setModel} disabled={loading} />
+          {data && <p className="triage-form-hint">Choose another model, then compare it against these exact tickets. Start a new baseline to choose a new dataset or random sample.</p>}
           <label htmlFor="smoke-dataset">DATASET</label>
           <select
             id="smoke-dataset"
@@ -145,7 +155,7 @@ export default function SmokeTestPage() {
                 Math.min(current, next === "labelled100" ? 100 : 500),
               );
             }}
-            disabled={loading}
+            disabled={loading || !!data}
           >
             <option value="labelled100">Labelled 100 tickets</option>
             <option value="tickets500">Unlabelled 500 tickets</option>
@@ -164,14 +174,18 @@ export default function SmokeTestPage() {
             value={sampleSize}
             onChange={(event) => setSampleSize(Number(event.target.value))}
             required
-            disabled={loading}
+            disabled={loading || !!data}
           />
-          <button className="triage-submit" type="submit" disabled={loading || !model}>
-            <span>{loading ? "RUNNING TEST" : "RUN SMOKE TEST"}</span>
-            <span className="triage-submit-mark" aria-hidden="true">
-              +
-            </span>
-          </button>
+          {sampleSize > 25 && !data && (
+            <p className="triage-info" role="note">
+              Large run: {sampleSize} model calls, processed five at a time. This can take several minutes; results appear when the run finishes.
+            </p>
+          )}
+          {!data && <button className="triage-submit" type="submit" disabled={loading || !model}>
+            <span>{loading ? "RUNNING BASELINE" : "RUN BASELINE TEST"}</span>
+            <span className="triage-submit-mark" aria-hidden="true">+</span>
+          </button>}
+          {data && <button className="triage-secondary-button" type="button" onClick={startNewBaseline} disabled={loading}>START A NEW BASELINE</button>}
         </div>
       </form>
 
@@ -187,8 +201,9 @@ export default function SmokeTestPage() {
             <h2>Results / {data.sampleSize} tickets</h2>
           </header>
           <div className="triage-token-usage">
-            <span>Model: {data.model}</span>
-            <span>Run saved: {data.runId}</span>
+            <span>Baseline sample: {data.sampleSize} tickets</span>
+            <span>Most recent run model: {data.model}</span>
+            <span>Saved run: {data.runId}</span>
           </div>
           {data.model !== model && (
             <button
@@ -197,18 +212,20 @@ export default function SmokeTestPage() {
               disabled={loading}
               onClick={() => void executeSmokeTest(data)}
             >
-              <span>{loading ? "RUNNING COMPARISON" : `RUN SAME SAMPLE WITH ${model}`}</span>
+              <span>{loading ? "COMPARING SAME SAMPLE" : `COMPARE WITH ${model}`}</span>
               <span className="triage-submit-mark" aria-hidden="true">↻</span>
             </button>
           )}
           {data.summary && (
-            <div className="triage-token-usage">
+            <div className="smoke-summary">
+              <strong>Labelled-set accuracy</strong>
               <span>
-                Category mismatches: {data.summary.categoryMismatches}
+                Category: {data.summary.categoryAccuracy === null ? "N/A" : `${(data.summary.categoryAccuracy * 100).toFixed(1)}%`} ({data.summary.categoryMismatches} mismatches)
               </span>
               <span>
-                Priority mismatches: {data.summary.priorityMismatches}
+                Priority: {data.summary.priorityAccuracy === null ? "N/A" : `${(data.summary.priorityAccuracy * 100).toFixed(1)}%`} ({data.summary.priorityMismatches} mismatches)
               </span>
+              <span>Evaluated: {data.summary.evaluatedPredictions} / {data.sampleSize}</span>
               <span>Successful: {data.summary.successfulPredictions}</span>
               <span>Failed: {data.summary.failedPredictions}</span>
             </div>

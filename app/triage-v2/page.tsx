@@ -11,7 +11,8 @@ import {
 } from "../../lib/schema";
 
 export default function TriageV2Page() {
-  const [ticketJson, setTicketJson] = useState("");
+  const [subject, setSubject] = useState("");
+  const [ticketBody, setTicketBody] = useState("");
   const [model, setModel] = useState("");
   const [usage, setUsage] = useState<TokenUsage | null>(null);
   const [result, setResult] = useState<TriageResult | null>(null);
@@ -25,23 +26,11 @@ export default function TriageV2Page() {
     setResult(null);
     setUsage(null);
 
-    let parsedTicket: unknown;
-
-    try {
-      parsedTicket = JSON.parse(ticketJson);
-    } catch {
-      setError("Please paste valid JSON.");
-      setIsSubmitting(false);
-      return;
-    }
-
-
-
     try {
       const triageResponse = await fetch("/api/triage-v2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticket: parsedTicket, model }),
+        body: JSON.stringify({ ticket: { subject, body: ticketBody }, model }),
       });
 
       const payload: unknown = await triageResponse.json();
@@ -130,17 +119,28 @@ export default function TriageV2Page() {
           </div>
           <div className="triage-fields">
             <ModelMenu value={model} onChange={setModel} disabled={isSubmitting} />
+            <label htmlFor="v2-subject">SUBJECT</label>
+            <input
+              id="v2-subject"
+              className="triage-input"
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+              placeholder="Briefly describe the issue"
+              maxLength={500}
+              required
+              disabled={isSubmitting}
+            />
             <label htmlFor="v2-body">TICKET BODY</label>
             <textarea
               id="v2-body"
               className="triage-input triage-ticket-body"
-              value={ticketJson}
-              onChange={(event) => setTicketJson(event.target.value)}
-              placeholder="Paste you JSON here."
-              rows={8}
+              value={ticketBody}
+              onChange={(event) => setTicketBody(event.target.value)}
+              placeholder="Describe what happened, what you expected, and any relevant details."
+              rows={7}
               maxLength={5000}
               required
-              disabled={isSubmitting}
+              disabled={isSubmitting || !model}
             />
             <button
               className="triage-submit"
@@ -153,6 +153,8 @@ export default function TriageV2Page() {
               </span>
             </button>
           </div>
+          <p className="triage-form-hint">Enter the ticket details directly. The service returns a category, priority, summary, and suggested action.</p>
+          {error && <p className="triage-error form-error" role="alert">{error}</p>}
         </form>
 
         <section
@@ -201,20 +203,15 @@ export default function TriageV2Page() {
           </div>
 
           {usage && (
-            <p className="triage-token-usage">
-              <span className="triage-token-usage-label">LLM TOKEN USAGE</span>
-              <span>
-              Tokens: {usage.inputTokens} input / {usage.outputTokens} output /{" "}
-              {usage.totalTokens} total
-              </span>
-            </p>
+            <details className="triage-token-details">
+              <summary>Technical details · token usage</summary>
+              <p className="triage-token-usage">
+                <span className="triage-token-usage-label">LLM TOKEN USAGE</span>
+                <span>Input {usage.inputTokens} · Output {usage.outputTokens} · Total {usage.totalTokens}</span>
+              </p>
+            </details>
           )}
 
-          {error && (
-            <p className="triage-error" role="alert">
-              {error}
-            </p>
-          )}
         </section>
       </div>
 

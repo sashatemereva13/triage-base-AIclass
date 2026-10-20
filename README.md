@@ -56,6 +56,9 @@ by model ID, with `inputPer1MUsd` and `outputPer1MUsd` prices. Cost is shown as
 unavailable for models without a configured rate or runs with missing token
 usage.
 
+Set `ADMIN_PASSWORD` to protect `/admin`. The page issues an HTTP-only session
+cookie after login; sessions expire after eight hours.
+
 ```sh
 npm install
 npm run dev
