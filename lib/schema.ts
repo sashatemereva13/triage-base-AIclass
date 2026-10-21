@@ -21,6 +21,7 @@ export const TriageRequestSchema = z
   .object({
     ticket: TriageTicketSchema,
     model: z.string().trim().min(1).optional(),
+    engine: z.enum(["llm", "decisionRules"]).optional(),
   })
   .strict();
 

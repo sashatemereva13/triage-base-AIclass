@@ -17,6 +17,7 @@ type SmokeResponse = {
   comparisonGroupId: string;
   sampleTicketIds: string[];
   model: string;
+  engine: "llm" | "decisionRules";
   dataset: DatasetName;
   sampleSize: number;
   results: SmokeResult[];
@@ -37,6 +38,8 @@ function isSmokeResponse(value: unknown): value is SmokeResponse {
   const data = value as Record<string, unknown>;
   return (
     (data.dataset === "labelled100" || data.dataset === "tickets500") &&
+    (data.engine === "llm" || data.engine === "decisionRules") &&
+    typeof data.model === "string" &&
     typeof data.sampleSize === "number" &&
     Array.isArray(data.results) &&
     (data.summary === null || typeof data.summary === "object")
@@ -44,6 +47,7 @@ function isSmokeResponse(value: unknown): value is SmokeResponse {
 }
 
 export default function SmokeTestPage() {
+  const [engine, setEngine] = useState<"llm" | "decisionRules">("llm");
   const [dataset, setDataset] = useState<DatasetName>("labelled100");
   const [sampleSize, setSampleSize] = useState(10);
   const [data, setData] = useState<SmokeResponse | null>(null);
@@ -70,6 +74,7 @@ export default function SmokeTestPage() {
           dataset: previousRun?.dataset ?? dataset,
           sampleSize: previousRun?.sampleSize ?? sampleSize,
           model,
+          engine,
           ...(previousRun
             ? {
                 ticketIds: previousRun.sampleTicketIds,
@@ -141,7 +146,24 @@ export default function SmokeTestPage() {
           <span>{data ? "Comparison sample" : "Baseline configuration"}</span>
         </div>
         <div className="triage-fields">
-          <ModelMenu value={model} onChange={setModel} disabled={loading} />
+          <label htmlFor="smoke-engine">DECISION ENGINE</label>
+          <select
+            id="smoke-engine"
+            className="triage-input"
+            value={engine}
+            onChange={(event) => setEngine(event.target.value as "llm" | "decisionRules")}
+            disabled={loading}
+          >
+            <option value="llm">LLM / generative classification</option>
+            <option value="decisionRules">DecisionRules / business rules</option>
+          </select>
+          {engine === "llm" ? (
+            <ModelMenu value={model} onChange={setModel} disabled={loading} />
+          ) : (
+            <p className="triage-form-hint decision-model-note">
+              DecisionRules needs server credentials and a published triage rule. It receives only derived boolean signals from each ticket.
+            </p>
+          )}
           {data && <p className="triage-form-hint">Choose another model, then compare it against these exact tickets. Start a new baseline to choose a new dataset or random sample.</p>}
           <label htmlFor="smoke-dataset">DATASET</label>
           <select
@@ -181,7 +203,7 @@ export default function SmokeTestPage() {
               Large run: {sampleSize} model calls, processed five at a time. This can take several minutes; results appear when the run finishes.
             </p>
           )}
-          {!data && <button className="triage-submit" type="submit" disabled={loading || !model}>
+          {!data && <button className="triage-submit" type="submit" disabled={loading || (engine === "llm" && !model)}>
             <span>{loading ? "RUNNING BASELINE" : "RUN BASELINE TEST"}</span>
             <span className="triage-submit-mark" aria-hidden="true">+</span>
           </button>}
@@ -205,14 +227,14 @@ export default function SmokeTestPage() {
             <span>Most recent run model: {data.model}</span>
             <span>Saved run: {data.runId}</span>
           </div>
-          {data.model !== model && (
+          {(data.engine !== engine || (engine === "llm" && data.model !== model)) && (
             <button
               className="triage-submit smoke-compare-button"
               type="button"
               disabled={loading}
               onClick={() => void executeSmokeTest(data)}
             >
-              <span>{loading ? "COMPARING SAME SAMPLE" : `COMPARE WITH ${model}`}</span>
+              <span>{loading ? "COMPARING SAME SAMPLE" : `COMPARE WITH ${engine === "decisionRules" ? "DECISIONRULES" : model}`}</span>
               <span className="triage-submit-mark" aria-hidden="true">↻</span>
             </button>
           )}

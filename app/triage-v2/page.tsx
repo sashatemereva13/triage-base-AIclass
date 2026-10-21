@@ -11,6 +11,7 @@ import {
 } from "../../lib/schema";
 
 export default function TriageV2Page() {
+  const [engine, setEngine] = useState<"llm" | "decisionRules">("llm");
   const [subject, setSubject] = useState("");
   const [ticketBody, setTicketBody] = useState("");
   const [model, setModel] = useState("");
@@ -30,7 +31,7 @@ export default function TriageV2Page() {
       const triageResponse = await fetch("/api/triage-v2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticket: { subject, body: ticketBody }, model }),
+        body: JSON.stringify({ ticket: { subject, body: ticketBody }, model, engine }),
       });
 
       const payload: unknown = await triageResponse.json();
@@ -118,7 +119,23 @@ export default function TriageV2Page() {
             <span className="triage-new-tag">INPUT</span>
           </div>
           <div className="triage-fields">
-            <ModelMenu value={model} onChange={setModel} disabled={isSubmitting} />
+            <label htmlFor="triage-engine">DECISION ENGINE</label>
+            <select
+              id="triage-engine"
+              className="triage-input"
+              value={engine}
+              onChange={(event) => setEngine(event.target.value as "llm" | "decisionRules")}
+              disabled={isSubmitting}
+            >
+              <option value="llm">LLM / generative classification</option>
+              <option value="decisionRules">DecisionRules / business rules</option>
+            </select>
+            {engine === "llm" && <ModelMenu value={model} onChange={setModel} disabled={isSubmitting} />}
+            {engine === "decisionRules" && (
+              <p className="triage-form-hint decision-model-note">
+                Uses the hosted decision table. Configure its server credentials and rule ID to enable live classification. No ticket text is sent to DecisionRules; the app sends derived boolean signals.
+              </p>
+            )}
             <label htmlFor="v2-subject">SUBJECT</label>
             <input
               id="v2-subject"

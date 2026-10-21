@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { classifyTicket } from "../../../lib/classifyTicket";
+import { classifyTicketWithDecisionRules, decisionRulesConfigured, decisionRulesModelName } from "../../../lib/decisionRules";
 import { isSupportedModel, llmModel } from "../../../lib/llm";
 import { PROMPT_VERSION } from "../../../lib/promptV2";
 import { TriageRequestSchema } from "../../../lib/schema";
@@ -30,17 +31,27 @@ export async function POST(request: Request) {
     );
   }
 
+  const selectedEngine = requestBody.data.engine ?? "llm";
   const selectedModel = requestBody.data.model ?? llmModel;
-  if (!isSupportedModel(selectedModel)) {
+  if (selectedEngine === "decisionRules" && !decisionRulesConfigured()) {
+    return Response.json(
+      { error: "DecisionRules is not configured. Set DECISIONRULES_API_KEY and DECISIONRULES_RULE_ID in the server environment." },
+      { status: 503 },
+    );
+  }
+  if (selectedEngine === "llm" && !isSupportedModel(selectedModel)) {
     return Response.json({ error: "Choose one of the configured LLM models." }, { status: 400 });
   }
 
   try {
-    const classification = await classifyTicket(requestBody.data.ticket, selectedModel);
+    const classification = selectedEngine === "decisionRules"
+      ? await classifyTicketWithDecisionRules(requestBody.data.ticket)
+      : await classifyTicket(requestBody.data.ticket, selectedModel);
     return Response.json({
       ...classification,
-      promptVersion: PROMPT_VERSION,
-      model: selectedModel,
+      promptVersion: selectedEngine === "llm" ? PROMPT_VERSION : null,
+      engine: selectedEngine,
+      model: selectedEngine === "decisionRules" ? decisionRulesModelName() : selectedModel,
     });
   } catch (error) {
     if (error instanceof OpenAI.APIError) {

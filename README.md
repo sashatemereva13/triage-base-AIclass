@@ -1,79 +1,99 @@
-# Support ticket triage app
+# Support Desk
 
-This repository is the starting point for an educational project in which
-computer science students will build a support ticket triage application. The
-planned application will use a large language model (LLM) from the backend to
-help analyze incoming support requests and support the triage process.
+A support ticket triage app built with Next.js. It provides an LLM-based ticket workflow, an optional hosted decision-rules engine, a support chat, smoke testing, and a protected run-history page.
 
-The codebase is intentionally a basic skeleton. It provides a small chat
-interface and server endpoint as a first step: before building the full triage
-workflow, students can use this mock chat to validate the connection between
-the application and an LLM provider.
+## Features
 
-## Current status
+- **Ticket intake:** Triage V2 validates the ticket request and result with Zod. The LLM returns a category, priority, summary, and suggested action, along with token usage when available.
+- **Decision model:** Triage V2 can use a hosted DecisionRules decision table to classify category and priority. The app derives boolean signals on the server and sends only those signals to DecisionRules. Summary and suggested action are fixed templates for this engine.
+- **Model comparison:** Choose among configured LLM models, or compare the LLM engine with DecisionRules using the same sample in the smoke test runner.
+- **Smoke tests:** Sample tickets from the labelled 100-ticket dataset or the unlabelled 500-ticket dataset. Labelled runs compare predicted category and priority with the dataset labels and report accuracy and mismatches.
+- **Run history:** `/admin` shows saved runs, including accuracy, outcome counts, latency, cost estimate, and model/engine. Runs are stored in SQLite.
+- **Support chat:** A separate chat workflow powered by the configured LLM.
+- **Ticket triage V1:** The original triage exercise remains available alongside Triage V2.
 
-The chat feature is currently a mockup implemented as an echo service. The
-client sends a message to `/api/chat`, and the server returns it in a
-confirmation response. No LLM provider is called, and no LLM configuration is
-needed to run this version.
+## Routes
 
-This simple end-to-end flow is intended to make it possible to verify the
-application's client-to-backend connection first, then integrate and validate
-an LLM provider as an intermediate step, before implementing the complete
-support ticket triage feature. The triage route and LLM client are placeholders
-for that future work.
+| Route | Purpose |
+| --- | --- |
+| `/` | Home and workflow navigation |
+| `/triage-v2` | Structured triage with selectable LLM or DecisionRules engine |
+| `/triage` | Original ticket triage workflow |
+| `/chat` | Support chat |
+| `/smoke-test` | Run and compare ticket samples |
+| `/admin` | Protected smoke-test run history |
 
-## Sample data
+## Requirements
 
-The `data/` folder contains two support-ticket datasets:
+- Node.js 22.5 or newer (the run-history database uses Node's built-in SQLite support).
+- An API key and model from an OpenAI-compatible LLM provider for chat, LLM triage, and LLM smoke tests.
+- Optional: a DecisionRules account, a published rule, and a Solver API key to use the hosted decision model.
 
-- **500 unlabelled tickets** in
-  [`support_tickets_500.csv`](./data/support_tickets_500.csv) and
-  [`support_tickets_500.json`](./data/support_tickets_500.json), for exploring
-  and developing the triage workflow.
-- **100 labelled tickets** in
-  [`support_tickets_100_labelled.csv`](./data/support_tickets_100_labelled.csv)
-  and
-  [`support_tickets_100_labelled.json`](./data/support_tickets_100_labelled.json).
-  These include triage annotations such as category, priority, and whether a
-  ticket needs human review, making them useful for testing and evaluating
-  triage approaches.
+## Configuration
+
+Copy `.env.example` to `.env.local` and configure the LLM provider:
+
+```env
+LLM_BASE_URL=https://your-provider.example/v1
+LLM_API_KEY=your-api-key
+LLM_MODEL=your-default-model
+LLM_MODELS=your-default-model,another-model
+```
+
+All listed LLM models must be available from the configured base URL and API key. `LLM_MODELS` is optional if only one model is used.
+
+### Admin password
+
+For the purposes of this assignment, the admin password is **`1234`**. Set the following in `.env.local`, then restart the app:
+
+```env
+ADMIN_PASSWORD=1234
+```
+
+After logging in at `/admin`, the app sets an HTTP-only session cookie that expires after eight hours.
+
+### LLM cost estimates
+
+Set per-model rates to show estimated smoke-test cost. Rates are USD per one million tokens:
+
+```env
+LLM_MODEL_PRICING_JSON={"your-default-model":{"inputPer1MUsd":1,"outputPer1MUsd":3}}
+```
+
+Cost appears as unavailable when token usage or rates are missing. The SQLite file defaults to `data/smoke-test-runs.sqlite`; override it with `SMOKE_TEST_DB_PATH` if needed.
+
+### DecisionRules setup (optional)
+
+Create and publish the support-ticket decision table described in [`MDM-report.md`](./MDM-report.md). Configure its server-side credentials in `.env.local`:
+
+```env
+DECISIONRULES_API_KEY=your-solver-api-key
+DECISIONRULES_RULE_ID=your-published-rule-id-or-alias
+DECISIONRULES_RULE_VERSION=1
+DECISIONRULES_BASE_URL=https://api.decisionrules.io
+```
+
+The rule version is optional and defaults to the latest published version. Set the base URL to the appropriate regional API URL for regional accounts. The DecisionRules free plan currently lists 1,000 Solver API calls per month; the app estimates DecisionRules run cost as zero only within that included quota. Check your account usage before running repeated or large samples. The app does not currently retrieve remaining quota from DecisionRules.
 
 ## Run locally
-
-Requires Node.js 22.5 or newer.
-
-To enable model selection, configure `LLM_MODEL` as the default model and set
-`LLM_MODELS` to the comma-separated model IDs available from the configured
-provider, for example `LLM_MODELS=model-a,model-b`. The model menu appears in
-Triage V2 and the smoke test runner. Smoke test runs can be repeated against the
-same sampled tickets with another model; `/admin` groups those runs for a
-side-by-side comparison. All listed models must be available through the same
-`LLM_BASE_URL` and API key.
-
-For estimated cost logging, set `LLM_MODEL_PRICING_JSON` to a JSON object keyed
-by model ID, with `inputPer1MUsd` and `outputPer1MUsd` prices. Cost is shown as
-unavailable for models without a configured rate or runs with missing token
-usage.
-
-Set `ADMIN_PASSWORD` to protect `/admin`. The page issues an HTTP-only session
-cookie after login; sessions expire after eight hours.
 
 ```sh
 npm install
 npm run dev
 ```
 
-Open http://localhost:3033 and send a message. Both `npm run dev` and
-`npm run start` use port 3033.
+Open [http://localhost:3033](http://localhost:3033). Both `npm run dev` and `npm run start` use port 3033.
 
-The Send button is disabled when the message is empty or contains only spaces,
-and while a request is in progress.
+## Datasets
 
-The client posts `{ "message": "your text" }` to `/api/chat`. The App Router
-handler in `app/api/chat/route.ts` returns
-`{ "answer": "Hello, you just said: your text" }`. Invalid JSON or an
-empty/non-string message returns HTTP 400 with an `error`.
+The `data/` directory contains:
+
+- [`support_tickets_100_labelled.json`](./data/support_tickets_100_labelled.json) and its CSV counterpart, with category, priority, and human-review labels for evaluation.
+- [`support_tickets_500.json`](./data/support_tickets_500.json) and its CSV counterpart, an unlabelled set for exploratory smoke tests.
+
+## Decision-model comparison status
+
+The app supports same-sample comparison between an LLM and DecisionRules. Actual DecisionRules accuracy and latency depend on the rule configured in your account. They are not reported as measured until the API key and rule ID are configured and a labelled smoke test has been run. The evaluation procedure and results table are in [`MDM-report.md`](./MDM-report.md).
 
 ## Checks
 

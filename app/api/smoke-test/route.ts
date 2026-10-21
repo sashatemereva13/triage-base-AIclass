@@ -3,6 +3,7 @@ import path from "node:path";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
 import { classifyTicket } from "../../../lib/classifyTicket";
+import { classifyTicketWithDecisionRules, decisionRulesConfigured, decisionRulesModelName } from "../../../lib/decisionRules";
 import { isSupportedModel, llmModel } from "../../../lib/llm";
 import { saveSmokeRun } from "../../../lib/smokeRunStore";
 
@@ -11,6 +12,7 @@ const SmokeTestRequestSchema = z
     dataset: z.enum(["labelled100", "tickets500"]),
     sampleSize: z.number().int().min(1),
     model: z.string().trim().min(1),
+    engine: z.enum(["llm", "decisionRules"]).optional(),
     ticketIds: z.array(z.string().min(1)).min(1).optional(),
     comparisonGroupId: z.string().uuid().optional(),
   })
@@ -69,7 +71,14 @@ export async function POST(request: Request) {
   }
 
   const { dataset, sampleSize, model, ticketIds, comparisonGroupId } = parsed.data;
-  if (!isSupportedModel(model)) {
+  const engine = parsed.data.engine ?? "llm";
+  if (engine === "decisionRules" && !decisionRulesConfigured()) {
+    return Response.json(
+      { error: "DecisionRules is not configured. Set DECISIONRULES_API_KEY and DECISIONRULES_RULE_ID in the server environment." },
+      { status: 503 },
+    );
+  }
+  if (engine === "llm" && !isSupportedModel(model)) {
     return Response.json({ error: "Choose one of the configured LLM models." }, { status: 400 });
   }
   try {
@@ -125,10 +134,13 @@ export async function POST(request: Request) {
           : null;
 
         try {
-          const classification = await classifyTicket({
+          const ticketInput = {
             subject: ticket.subject,
             body: ticket.body,
-          }, model);
+          };
+          const classification = engine === "decisionRules"
+            ? await classifyTicketWithDecisionRules(ticketInput)
+            : await classifyTicket(ticketInput, model);
           results[index] = {
             id,
             subject: ticket.subject,
@@ -209,7 +221,12 @@ export async function POST(request: Request) {
     } catch {
       // Invalid optional pricing configuration leaves cost unavailable.
     }
-    if (!pricing[model] && model === llmModel) {
+    const recordedModel = engine === "decisionRules" ? decisionRulesModelName() : model;
+    if (engine === "decisionRules") {
+      // DecisionRules Free includes 1,000 Solver API calls/month. The estimate is
+      // zero only while the account remains within its included monthly quota.
+      pricing[recordedModel] = { inputPer1MUsd: 0, outputPer1MUsd: 0 };
+    } else if (!pricing[model] && model === llmModel) {
       const inputRateValue = process.env.LLM_INPUT_COST_PER_1M_USD?.trim();
       const outputRateValue = process.env.LLM_OUTPUT_COST_PER_1M_USD?.trim();
       const inputPer1MUsd = inputRateValue ? Number(inputRateValue) : Number.NaN;
@@ -219,10 +236,12 @@ export async function POST(request: Request) {
         pricing[model] = { inputPer1MUsd, outputPer1MUsd };
       }
     }
-    const modelPricing = pricing[model];
-    const estimatedCostUsd = allUsageKnown && modelPricing
-      ? (inputTokens * modelPricing.inputPer1MUsd + outputTokens * modelPricing.outputPer1MUsd) / 1_000_000
-      : null;
+    const modelPricing = pricing[recordedModel] ?? pricing[model];
+    const estimatedCostUsd = engine === "decisionRules"
+      ? 0
+      : allUsageKnown && modelPricing
+        ? (inputTokens * modelPricing.inputPer1MUsd + outputTokens * modelPricing.outputPer1MUsd) / 1_000_000
+        : null;
     const latencyMs = Math.round(performance.now() - runStartedAt);
 
     const savedRun = saveSmokeRun({
@@ -230,7 +249,7 @@ export async function POST(request: Request) {
       sampleSize: sample.length,
       comparisonGroupId: runComparisonGroupId,
       sampleTicketIds: stableTicketIds,
-      model,
+      model: recordedModel,
       categoryAccuracy,
       priorityAccuracy,
       exactAccuracy,
@@ -259,7 +278,8 @@ export async function POST(request: Request) {
       runId: savedRun.id,
       comparisonGroupId: runComparisonGroupId,
       sampleTicketIds: stableTicketIds,
-      model,
+      model: recordedModel,
+      engine,
       dataset,
       sampleSize: sample.length,
       results,
@@ -274,7 +294,7 @@ export async function POST(request: Request) {
         outputTokens: allUsageKnown ? outputTokens : null,
         totalTokens: allUsageKnown ? totalTokens : null,
         estimatedCostUsd,
-        model,
+        model: recordedModel,
       },
     });
   } catch {
